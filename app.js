@@ -1,5 +1,11 @@
 const express = require("express"); // Importa ExpressJS. Más info de Express en =>https://expressjs.com/es/starter/hello-world.html
 const mariadb = require('mariadb');
+const jwt = require("jsonwebtoken");
+const SECRET_KEY = "CLAVE ULTRA SECRETA";
+
+const peopleController = require("./controllers/peopleController");
+
+const peopleRouter = require("./routes/peopleRoute");
 
 const pool = mariadb.createPool({
   host: "localhost", 
@@ -22,22 +28,28 @@ app.get("/", (req, res) => {
   res.send("<h1>Bienvenid@ al servidor</h1>");
 });
 
-app.get("/people", async (req, res) => {
-  let conn;
-  try {
-
-	conn = await pool.getConnection();
-	const rows = await conn.query(
-    "SELECT * FROM todo"
-  );
-
-    res.json(rows);
-  } catch(error) {
-    res.status(500).json({message: "Se rompió el servidor"});
-  } finally {
-	  if (conn) conn.release();
+app.post("/login", (req, res)=> {
+  const {username, password} = req.body;
+  if(username === "admin" && password === "admin"){
+    const token = jwt.sign({username}, SECRET_KEY);
+    res.status(200).json({token});
+  } else {
+    res.status(401).json({message: "Usuario y/o contraseña incorrecto"});
   }
 });
+
+app.use("/people", (req, res, next) => {
+  try {
+    const decoded = jwt.verify(req.headers["access-token"], SECRET_KEY);
+    next();
+  } catch (err) {
+    res.status(401).json({message: "Usuario no autorizado"});
+  }
+});
+
+app.get("/people", peopleController.getUsers);
+
+app.use("/people", peopleRouter);
 
 app.get("/people/:id", async (req, res) => {
   let conn;
