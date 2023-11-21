@@ -13,6 +13,24 @@ let formLogin = document.getElementById("formLogin");
 
 // CREAR UN USUARIO
 
+var requestOptions = {
+    method: 'GET',
+    redirect: 'follow',
+    mode: 'no-cors'
+  };
+
+fetch(USER_URL, requestOptions)
+.then(response => {
+    console.log(response)
+    return response.json();
+})
+.then(data => {
+    console.log(data)
+})
+.catch(error => {
+    console.log(error)
+})
+
 formSignup.addEventListener("submit", function(){
 
     let myHeaders = new Headers();
