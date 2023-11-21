@@ -9,84 +9,59 @@ let btnLogin = document.getElementById("btnLogin");
 let formSignup = document.getElementById("formSignup");
 let formLogin = document.getElementById("formLogin");
 
+// VARIABLES GLOBALES
+
+let key = JSON.parse(localStorage.getItem("key")) || "";
+let users = getUsers() || [];
+
 // FUNCIONES
 
-// CREAR UN USUARIO
+// AUXILIARES
 
-var requestOptions = {
-    method: 'GET',
-    redirect: 'follow',
-    mode: 'no-cors'
-  };
+function getUsers(){
+    fetch(USER_URL)
+    .then(response => {
+        return response.json();
+    })
+    .then(data => {
+        users = data;
+    })
+    .catch(error => {
+        console.log(error);
+        alert("No se puede conectar al servidor");
+    })
+}
 
-fetch(USER_URL, requestOptions)
-.then(response => {
-    console.log(response)
-    return response.json();
-})
-.then(data => {
-    console.log(data)
-})
-.catch(error => {
-    console.log(error)
-})
-
-formSignup.addEventListener("submit", function(){
-
-    let myHeaders = new Headers();
-    // myHeaders.append("access-token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNzAwNTI3ODc4fQ.-2v-itizmjhMJpDICq8t8WZvTHxeHMLL9N6qsZ8Tf_A");
+function getKey(){
+    var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
 
-    let raw = JSON.stringify({
+    var raw = JSON.stringify({
         "user": userSignup.value,
         "pass": passSignup.value
     });
 
-    let requestOptions = {
+    var requestOptions = {
         method: 'POST',
         headers: myHeaders,
         body: raw,
-        redirect: 'follow',
-        mode: 'no-cors'
+        redirect: 'follow'
     };
-
-    let requestOptionsGET = {
-        method: 'GET',
-        headers: myHeaders,
-        body: raw,
-        redirect: 'follow',
-        mode: 'no-cors'
-    };
-
-    console.log(requestOptions);
-
-    let key;
 
     fetch(LOG_URL, requestOptions)
     .then(response => response.json())
     .then(data => {
         key = data;
-        myHeaders.append("access-token", JSON.stringify(key));
-        requestOptions.headers = myHeaders;
-        requestOptionsGET.headers = myHeaders;
     })
     .catch(error => {
-        alert("No se puede conectar al servidor");
-
+        console.log(error)
+        alert("No se puede conectar con el servidor")
     });
+}
 
-    let usersArray = [];
+formSignup.addEventListener("submit", function(){
 
-    fetch(USER_URL, requestOptionsGET)
-    .then(response => response.json())
-    .then(data => {
-        usersArray = data;
-    })
-    .catch(error => {
-        alert("No se puede conectar al servidor");
-    });
-
-    for(let user of usersArray){
+    for(let user of users){
         if(user.user === userSignup.value){
             alert("Usuario ya existente");
             event.preventDefault();
@@ -94,14 +69,36 @@ formSignup.addEventListener("submit", function(){
         }
     }
 
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+
+    var raw = JSON.stringify({
+        "user": userSignup.value,
+        "pass": passSignup.value
+    });
+
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
+    };
+
     fetch(USER_URL, requestOptions)
     .then(response => {
-        alert("Usuario creado con éxito");
+        if(response.ok){
+            alert("Usuario creado con éxito");
+        } else {
+            alert("No se pudo crear el usuario");
+        }
     })
     .catch(error => {
         alert("No se puede conectar al servidor");
     });
 
-    localStorage.setItem("usuario", userSignup.value);
+    key = getKey();
+    
+    localStorage.setItem("key", JSON.stringify(key));
+    localStorage.setItem("usuario", JSON.stringify(userSignup.value));
     event.preventDefault();
 });
