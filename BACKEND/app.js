@@ -19,9 +19,9 @@ app.get("/", (req, res) => {
 
 // Auth
 app.post("/login", (req, res) => {
-  const { username, password } = req.body;
-  if (username === "admin" && password === "admin") {
-    const token = jwt.sign({ username }, SECRET_KEY);
+  const { user, pass } = req.body;
+  if (user != "" && pass != "") {
+    const token = jwt.sign({ user }, SECRET_KEY);
     res.status(200).json({ token });
   } else {
     res.status(401).json({ message: "Usuario y/o contraseña incorrecto" });
@@ -48,6 +48,7 @@ app.use("/forums", (req, res, next) => {
     res.status(401).json({ message: "Usuario no autorizado" });
   }
 });
+
 //---
 
 // Asociamos el router de people con las rutas
