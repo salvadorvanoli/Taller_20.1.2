@@ -30,7 +30,7 @@ const getUserById = async (id) => {
   try {
     conn = await pool.getConnection();
     const rows = await conn.query(
-      "SELECT userid, user, pass FROM users WHERE id=?",
+      "SELECT userid, user, pass FROM users WHERE userid=?",
       [id]
     );
 
